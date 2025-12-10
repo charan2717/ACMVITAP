@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Choose Event</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+            background: #f5f7fb;
+            color: #0f172a;
+            margin: 0;
+            padding: 28px
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px
+        }
+
+        p.lead {
+            color: #64748b;
+            margin-bottom: 20px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px
+        }
+
+        .card {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #e6eefc;
+            box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04)
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 16px
+        }
+
+        .meta {
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 13px
+        }
+
+        .actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .btn {
+            background: #2563eb;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer
+        }
+
+        .btn.ghost {
+            background: transparent;
+            color: #2563eb;
+            border: 1px solid rgba(37, 99, 235, 0.12)
+        }
+
+        .empty {
+            padding: 28px;
+            text-align: center;
+            color: #94a3b8
+        }
+
+        a.back {
+            display: inline-block;
+            margin-top: 18px;
+            color: #475569;
+            text-decoration: none
+        }
+
+        @media(max-width:640px) {
+            body {
+                padding: 16px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Pick an Event to Register</h1>
+        <p class="lead">Choose one of the active events below. The registration form will adapt to the event
+            requirements.</p>
+
+        {% if events %}
+        <div class="grid">
+            {% for e in events %}
+            <div class="card">
+                <h3>{{ e.event_name }}</h3>
+                <div class="meta">
+                    Required team name: <strong>{{ 'Yes' if e.require_team_name else 'No' }}</strong><br>
+                    Min members: <strong>{{ e.min_members }}</strong> • Max members: <strong>{{ e.max_members
+                        }}</strong>
+                </div>
+
+                <div class="actions">
+                    <a class="btn" href="{{ url_for('team_register', event_id=e._id) }}">Register →</a>
+                    <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Back</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card empty">
+            No active events open for registration yet.
+            <div style="margin-top:12px">
+                <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+
+</html>
