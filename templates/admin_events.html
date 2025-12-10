@@ -1,0 +1,272 @@
+<!-- templates/admin_events.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin — Events</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+            background: #f5f7fb;
+            color: #0f172a;
+            margin: 0;
+            padding: 28px
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px
+        }
+
+        h1 {
+            font-size: 22px;
+            margin: 0
+        }
+
+        .btn {
+            background: #2563eb;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none
+        }
+
+        .panel {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 20px
+        }
+
+        .list {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #e6eefc;
+            box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04)
+        }
+
+        .item {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .item:last-child {
+            border-bottom: none
+        }
+
+        .muted {
+            color: #64748b;
+            font-size: 13px
+        }
+
+        form.card {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #e6eefc;
+            box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04)
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 13px
+        }
+
+        input[type=text],
+        input[type=number] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border-radius: 8px;
+            border: 1px solid #e6eefc
+        }
+
+        .row {
+            display: flex;
+            gap: 8px
+        }
+
+        .small {
+            flex: 1
+        }
+
+        .switch {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 10px
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 8px
+        }
+
+        .actions {
+            margin-top: 14px;
+            display: flex;
+            gap: 8px
+        }
+
+        .action-group {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .btn.small {
+            padding: 6px 10px;
+            font-size: 13px;
+            border-radius: 8px
+        }
+
+        .btn.danger {
+            background: #ef4444
+        }
+
+        .flash {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px
+        }
+
+        .flash.success {
+            background: #e7f9ee;
+            color: #0b6b3b;
+            border: 1px solid #c7eed0
+        }
+
+        .flash.error {
+            background: #fff1f1;
+            color: #8b1a1a;
+            border: 1px solid #f3c6c6
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 13px;
+            color: #94a3b8
+        }
+
+        @media(max-width:980px) {
+            .panel {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <h1>Events Management</h1>
+            <a class="btn" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+        </header>
+
+        {%- with messages = get_flashed_messages(with_categories=true) %}
+        {%- if messages %}
+        {%- for cat, msg in messages %}
+        <div class="flash {{ 'success' if cat=='success' else 'error' }}">{{ msg }}</div>
+        {%- endfor %}
+        {%- endif %}
+        {%- endwith %}
+
+        <div class="panel">
+            <div class="list" aria-live="polite">
+                <h3 style="margin-bottom:10px">Existing Events</h3>
+
+                {% if events %}
+                {% for ev in events %}
+                <div class="item" id="event-{{ ev._id }}">
+                    <div>
+                        <div style="font-weight:700">{{ ev.event_name }}</div>
+                        <div class="muted">Team name: {{ 'Yes' if ev.require_team_name else 'No' }} • Members: {{
+                            ev.min_members }}–{{ ev.max_members }}</div>
+                        <div class="meta-row" style="margin-top:6px">
+                            <span>Created: {{ ev.created_at[:10] if ev.created_at }}</span>
+                            {% if ev.updated_at %}
+                            <span>• Updated: {{ ev.updated_at[:10] }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="action-group" role="group" aria-label="Event actions">
+                        <a class="btn small" href="{{ url_for('admin_edit_event', event_id=ev._id) }}">Edit</a>
+
+                        <!-- Delete uses POST to avoid accidental deletes and to work with CSRF later -->
+                        <form method="POST" action="{{ url_for('admin_delete_event', event_id=ev._id) }}"
+                            style="display:inline" onsubmit="return confirmDelete('{{ ev.event_name | e }}')">
+                            <button type="submit" class="btn small danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="muted" style="padding:12px">No events yet. Add one using the form to the right.</div>
+                {% endif %}
+            </div>
+
+            <form class="card" method="POST" action="{{ url_for('admin_events') }}">
+                <h3 style="margin-top:0">Create New Event</h3>
+
+                <label for="event_name">Event Name</label>
+                <input id="event_name" name="event_name" type="text" required placeholder="e.g. Hackathon Workshop">
+
+                <div class="switch" style="margin-top:8px">
+                    <input id="require_team_name" name="require_team_name" type="checkbox">
+                    <label for="require_team_name" style="margin:0;font-weight:600">Require team name?</label>
+                </div>
+
+                <div class="row" style="margin-top:8px">
+                    <div class="small">
+                        <label for="min_members">Min members</label>
+                        <input id="min_members" name="min_members" type="number" min="1" value="1" required>
+                    </div>
+                    <div class="small">
+                        <label for="max_members">Max members</label>
+                        <input id="max_members" name="max_members" type="number" min="0" value="3" required>
+                    </div>
+                </div>
+
+                <div class="hint">Tip: For single-attendee events set min_members=1 and uncheck "Require team name".
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn">Create Event</button>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn"
+                        style="background:#f3f4f6;color:#0f172a;border:1px solid #e6eefc">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete(name) {
+            // simple confirmation — name is already escaped in the template via |e
+            return confirm("Delete event \"" + name + "\"? This will remove the event definition but NOT remove registrations. Continue?");
+        }
+    </script>
+</body>
+
+</html>
