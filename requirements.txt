@@ -4,5 +4,5 @@ dnspython
 python-dotenv
 pandas
 xlsxwriter
-bson
 gunicorn
+
